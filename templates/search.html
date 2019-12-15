@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Flask-Sqlite3 Demo</title>
+
+    <!-- css from w3 site for the table -->
+    <style>
+        body {
+            margin: 10px;
+        }
+
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td,
+        th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+</head>
+
+<body>
+    <p>{{pagename}}</p>
+    <a href="{{url_for('index')}}">⬅️ กลับไปยังหน้าหลัก</a>
+    <div style="margin: 10px 0; padding : 5px; border: black solid 1px;">
+        <a href="{{url_for('add')}}">เพิ่มข้อมูล</a>
+        <a href="{{url_for('search')}}">ค้นหาข้อมูล</a>
+        <a href="{{url_for('edit')}}">แก้ไขข้อมูล</a>
+        <a href="{{url_for('delete')}}">ลบข้อมูล</a>
+    </div>
+    <div class="container">
+        <form>
+            <div class="form-group">
+                <label for="menu_ID">รหัส/ชื่อเมนูอาหาร</label>
+                <input type="text" class="form-control" id="menu_ID" placeholder="ปอเปี๊ยะ">
+            </div>
+            <button type="submit" class="btn btn-primary mb-2">ค้นหา</button>
+            <p class="text-danger error">{{error}}</p>
+        </form>
+    </div>
+    <table>
+        <tr class='title'>
+            <th>รหัสอาหาร</th>
+            <th>ชื่อรายการ</th>
+            <th>ประเภทอาหาร</th>
+            <th>ราคา</th>
+        </tr>
+    </table>
+</body>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+    crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+    crossorigin="anonymous"></script>
+
+<script>
+    $('button').click(function (e) {
+        e.preventDefault()
+        var data = {}
+        // check me_id
+        if ($('#menu_ID').val().length !== 0) {
+            if ($('#menu_ID').val().match(/[m][0-9]{4}$/g)) {
+                // search by menu id
+                data['menu_ID'] = $('#menu_ID').val()
+            } else {
+                // search by menu name
+                data['menu_Name'] = $('#menu_ID').val()
+            }
+        }
+        setErr('')
+        console.log(data)
+        $.ajax({
+            url: '{{url_for("search")}}',
+            data: JSON.stringify(data),
+            contentType: "application/json",
+            type: 'POST',
+            success: function (response) {
+                console.log(response)
+                if (response.error) {
+                    setErr(response.error)
+                } else {
+                    $('tr:not(.title)').remove();
+                    for (var i = 0; i < response.menu.length; i++) {
+                        var m = response.menu[i];
+                        var row = $('<tr></tr>')
+                        row.append($('<td>' + m[0] + '</td>'))
+                        row.append($('<td>' + m[1] + '</td>'))
+                        row.append($('<td>' + m[2] + '</td>'))
+                        row.append($('<td>' + m[3] + '</td>'))
+                        $('table').append(row)
+                    }
+                }
+            },
+            error: function (error) {
+                console.log(error);
+            }
+        });
+    });
+
+    function setErr(str) {
+        $(".error").text(str)
+    }
+</script>
+
+</html>
